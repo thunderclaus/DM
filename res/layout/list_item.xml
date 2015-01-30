@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal" >
+<!--警报类型,姓名,时间,状态按钮   -->
+    <ImageView
+        android:id="@+id/item_Alert"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:contentDescription="Alert" />
+
+    <TextView
+        android:id="@+id/item_Name"
+        android:layout_width="0dp"
+        android:layout_weight="2"
+        android:layout_height="wrap_content"
+        
+        android:textIsSelectable="false" />
+    
+    <TextView
+        android:id="@+id/item_Time"
+        android:layout_width="0dp"
+        android:layout_weight="6"
+        android:layout_height="wrap_content"
+        android:textIsSelectable="false" />
+    
+    <ImageView
+        android:id="@+id/item_State"
+       	android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content" 
+        android:contentDescription="State"/>
+
+
+
+</LinearLayout>
