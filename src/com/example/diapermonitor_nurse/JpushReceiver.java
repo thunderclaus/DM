@@ -1,8 +1,11 @@
 package com.example.diapermonitor_nurse;
 
+
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import cn.jpush.android.api.JPushInterface;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -15,7 +18,6 @@ import android.util.Log;
 
 public class JpushReceiver extends BroadcastReceiver{
 	private static final String TAG = "PushReceiver";
-	private String name;
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
@@ -36,9 +38,10 @@ public class JpushReceiver extends BroadcastReceiver{
 		//SharedPreferences,JSONArray,JSONObject,ListView
 		JSONArray tempJA;
 		JSONObject newJO;
+
 		SharedPreferences tempSP = context.getSharedPreferences("DiaperMonitor",Activity.MODE_PRIVATE);
-		
-		
+		//上句中应为context还是MainActivity?????????????
+				
 		try {
 			//JA
 			tempJA =  new JSONArray(tempSP.getString("DiaperMonitor",""));
@@ -47,7 +50,8 @@ public class JpushReceiver extends BroadcastReceiver{
 			newJO = new JSONObject(jpushData);
 			int length = tempJA.length();
 			
-			for(int i = length-1; i >= 0; i--){//遍历JSONArray 
+			//遍历JSONArray 
+			for(int i = length-1; i >= 0; i--){
 				JSONObject tempJO = tempJA.getJSONObject(i);
 				if(newJO.optInt("dataID")==(tempJO.optInt("dataID"))) {
 					//如果是已有报警
