@@ -11,7 +11,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.example.diapermonitor_nurse.MyAdapter;
-
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -135,7 +134,9 @@ public class MainActivity extends Activity {
 						mList2JA2SP();
 						
 						// 发送(线程)===============================================================
-
+						send(item);
+						
+						
 						Toast.makeText(getApplicationContext(), "感谢您响应了护理请求",
 								Toast.LENGTH_SHORT).show();
 						adapter.notifyDataSetChanged();
@@ -151,12 +152,11 @@ public class MainActivity extends Activity {
 							item.put("recordTime", sysTime);
 							Log.d("点击", "响应:状态为从1变2");
 							// 记录SP?????????????????那一步应该放在前面
-							
-
 							// 遍历mList,将其以JSONArray形式保存
 							mList2JA2SP();
 							// 发送(线程)===============================================================
-
+							send(item);
+							
 							Toast.makeText(getApplicationContext(), "感谢您完成了护理",
 									Toast.LENGTH_SHORT).show();
 							adapter.notifyDataSetChanged();
@@ -174,6 +174,14 @@ public class MainActivity extends Activity {
 					}
 
 				} 
+			}
+
+			private void send(HashMap<String, Object> mItem) {
+				// TODO Auto-generated method stub
+				JSONObject newJpushJson = new JSONObject(mItem);
+				String jpushStr = newJpushJson.toString();
+				JpushUpload uploadJpush = new JpushUpload(jpushStr);
+				uploadJpush.upload();
 			}
 
 
