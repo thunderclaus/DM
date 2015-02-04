@@ -85,10 +85,10 @@ public class MyAdapter extends BaseAdapter{
         }
         // 设置list中TextView的显示
        
-        holder.alert.setImageBitmap(imageAlert(mData.get(position).get("alertType").toString()));
+        holder.alert.setImageBitmap(imageAlert(mData.get(position).get("alertType")));
         holder.name.setText(mData.get(position).get("patientName").toString());
-        holder.state.setImageBitmap(imageState(mData.get(position).get("alertState").toString()));
-        // 根据flag来设置checkbox的选中状况
+        holder.state.setImageBitmap(imageState(mData.get(position).get("alertState")));
+        
         holder.time.setText(mData.get(position).get("recordTime").toString());
         return convertView;
     }
@@ -98,8 +98,8 @@ public class MyAdapter extends BaseAdapter{
 //  2   表示按键报警
 //  3   表示脱落报警
 //  4   表示低电量报警
-    private Bitmap imageAlert(String string) {
-    	int i = Integer.valueOf(string).intValue(); 
+    private Bitmap imageAlert(Object object ) {
+    	int i = (Integer) object; 
 		switch (i) {
 		case 1:
 			return alertWet;
@@ -119,8 +119,8 @@ public class MyAdapter extends BaseAdapter{
 //  红 未护理
 //  黄 我护理
 //  灰 他护理
-    private Bitmap imageState(String string) {
-		int i = Integer.valueOf(string).intValue(); 
+    private Bitmap imageState(Object object) {
+		int i = (Integer) object; 
 		switch (i) {
 		case 0:
 			return stateRed;

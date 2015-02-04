@@ -57,7 +57,7 @@ public class MainActivity extends Activity {
 	// 护工姓名
 	protected String sysTime;
 	private static SharedPreferences nameSP;
-	protected String name;
+	protected static String name;
 	private EditText editName;
 	static ArrayList<HashMap<String, Object>> mList;
 
@@ -80,27 +80,46 @@ public class MainActivity extends Activity {
 		// //SP->JA+JO;JA->SP->LV
 		// //SharedPreferences,JSONArray,JSONObject,ListView
 		projectSP = getSharedPreferences("DiaperMonitor", Activity.MODE_PRIVATE);
+		Log.d("onCreate projectSP ", projectSP.getString("DiaperMonitor", "")
+				+ "//ForInit");
 		nameSP = getSharedPreferences("name", Activity.MODE_PRIVATE);
+		name = nameSP.getString("nurseName", "");
+		
 		// 判断name是否为空,为空则弹出窗口,请求填写护工编号
 		// 添加修改护工编号的响应
-		name = nameSP.getString("nurseName", "");
-//		Log.d("onCreate","清空前"+nameSP.getString("nurseName", "")+"end");
-//		//空数据集合测试
-//		SharedPreferences.Editor editor01 = nameSP.edit();
-//		editor01.clear();
-//		editor01.commit();
-//		Log.d("onCreate","清空后"+nameSP.getString("nurseName", "")+"end");
+		Log.d("onCreate", "清空前" + nameSP.getString("nurseName", "") + "end");
+		// 空数据集合测试
+		// SharedPreferences.Editor editor01 = nameSP.edit();
+		// editor01.clear();
+		// editor01.commit();
+		// Log.d("onCreate","清空后"+nameSP.getString("nurseName", "")+"end");
+		Log.d("onCreate", "判断nameSP为空与否1 内容=" + nameSP.getString("nurseName", ""));
 
+		if (nameSP.getString("nurseName", "").equals("")) {
+			nameDialog();
+		}
+		Log.d("onCreate", "判断nameSP为空与否2 内容=" + nameSP.getString("nurseName", ""));
+		Log.d("onCreate", "判断变量 name=" + name);
+		
+		
 		// //JA获取JPUSH数据,如果同事来了多组数据怎么办
 
+		
+		//没有必要吧
+//		Log.d("onCreate", "TRY===creat初始化了mList  ");
+//		mList = getData();
+//		Log.d("onCreate", "TRY===creat初始化了mList = " + mList.toString());
+		
+		
+		// Log.d("onCreate","creat初始化mList = "+mList.toString());
 		mListviewCareds = (ListViewForScrollView) findViewById(R.id.mainactivy_list_Careds); /* 定义一个动态数组 */
 
-		try {
-			setView();
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		// try {
+		// setMainView();
+		// } catch (JSONException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
 		registerMessageReceiver();
 
 		// 病人数据集合-----------------------感觉应该设置成JSONArray
@@ -123,13 +142,14 @@ public class MainActivity extends Activity {
 				int i = 3;
 				HashMap<String, Object> item;
 				item = mList.get(arg2);
-
-				if (name.equals("")) {
+				
+				if (nameSP.getString("nurseName", "").equals("")) {
 					nameDialog();
-					Toast.makeText(getApplicationContext(), "联系患者时,需要填写您的信息", Toast.LENGTH_SHORT).show();
+					Toast.makeText(getApplicationContext(), "联系患者时,需要填写您的信息",
+							Toast.LENGTH_SHORT).show();
 				} else {
 
-					if (mList.get(arg2).get("alertState").equals("")) {
+					if (item.get("alertState").equals("")) {
 						// 如果列表为空,无响应
 					} else {
 						i = (Integer) item.get("alertState");
@@ -146,7 +166,7 @@ public class MainActivity extends Activity {
 							Log.d("点击", "响应:状态为从0变1");
 							// 记录SP
 							// 遍历mList,将其以JSONArray形式保存
-							mList2JA2SP();
+							mList2JA2SP(mList);
 
 							// 发送(线程)
 							send(item);
@@ -158,17 +178,20 @@ public class MainActivity extends Activity {
 							break;
 						case 1:
 							// 自己:1->2,刷新,同时记录SP
+							//没有必要	
+							name = nameSP.getString("nurseName", "");
+							Log.d("setOnItemClickListener", name);
 							if (item.get("nurseName").equals(name)) {
 								item.remove("alertState");
-								item.put("alertState", 1);
+								item.put("alertState", 3);
 								sysTime = format.format(System
 										.currentTimeMillis());
 								item.remove("recordTime");
 								item.put("recordTime", sysTime);
-								Log.d("点击", "响应:状态为从1变2");
+								Log.d("点击", "响应:状态为从1变3");
 								// 记录SP?????????????????那一步应该放在前面
 								// 遍历mList,将其以JSONArray形式保存
-								mList2JA2SP();
+								mList2JA2SP(mList);
 								// 发送(线程)===============================================================
 								send(item);
 
@@ -180,11 +203,16 @@ public class MainActivity extends Activity {
 								Log.d("点击", "1不是自己的响应,无动作");
 							}
 							break;
-						case 2:
-							// 无动作
-							Log.d("点击", "2不是自己的响应,无动作");
-							break;
+//						case 2:
+//							// 无动作
+//							Log.d("点击", "2不是自己的响应,无动作");
+//							break;
+//						case 3:
+//							// 无动作
+//							Log.d("点击", "2不是自己的响应,无动作");
+//							break;
 						default:
+							Log.e("点击", "2不是自己的响应,无动作");
 							break;
 						}
 					}
@@ -199,20 +227,24 @@ public class MainActivity extends Activity {
 	private void nameDialog() {
 		// TODO Auto-generated method stub
 		editName = new EditText(this);
+		Log.d("nameDialog", "被调用了");
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("您好,请输入您的姓名或工作号").setView(editName)
-				.setCancelable(false).setPositiveButton("确定", new DialogInterface.OnClickListener() {
-					
+				.setCancelable(false)
+				.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						// TODO Auto-generated method stub
+
 						SharedPreferences.Editor editor = nameSP.edit();
-						editor.putString("nurseName", editName.getText().toString());
+						editor.putString("nurseName", editName.getText()
+								.toString());
 						editor.commit();
-						Log.d("nameDialog","已记录"+nameSP.getString("nurseName", ""));
+						Log.d("nameDialog",
+								"已记录nameSP.getString="
+										+ nameSP.getString("nurseName", ""));
 					}
-				})
-				.show();
+				}).show();
 	}
 
 	private void send(HashMap<String, Object> mItem) {
@@ -224,35 +256,54 @@ public class MainActivity extends Activity {
 	}
 
 	// 将mList保存为SP
-	protected void mList2JA2SP() {
+	protected void mList2JA2SP(ArrayList<HashMap<String, Object>> mlist) {
 		// TODO Auto-generated method stub
-		// TODO Auto-generated method stub
+
 		JSONArray mJA = new JSONArray();
 		int count = 0;
 		int red = 0;
 		int yellow = 0;
 		int gray = 0;
-		int l = mList.size();
+		//没有必要 
+		name = nameSP.getString("nurseName", "");
+		Log.d("mList2JA2SP", name);
+		ArrayList<HashMap<String, Object>> list = mlist;
+
+		int l = list.size();
+		Log.d("mList2JA2SP", "list.size() = " + l);
+		Log.d("mList2JA2SP", "list内容 = " + list.toString());
 		for (int a = 0; a < l; a++) {
-			JSONObject mJO = new JSONObject(mList.get(a));
-			while (mList.get(a).get("alertState") != null) {
-				count = Integer.parseInt(mList.get(a).get("alertState")
+			JSONObject mJO = new JSONObject(list.get(a));
+			Log.d("mList2JA2SP", "mJO = " + mJO.toString());
+			while (list.get(a).get("alertState") != null) {
+				count = Integer.parseInt(list.get(a).get("alertState")
 						.toString());
+				Log.d("mList2JA2SP", "count = " + count);
 				switch (count) {
 				case 0:
 					red++;
+					// Log.d("mList2JA2SP", "red = "+red);
 					break;
+//				case 1:
+//					if (list.get(a).get("nurseName").equals(name)) {
+//						yellow++;
+//						Log.d("mList2JA2SP", "yellow = " + yellow);
+//					} else {
+//						gray++;
+//					}
+//					break;
 				case 1:
-					if (mList.get(a).get("nurseName").equals(name)) {
-						yellow++;
-					} else {
-						gray++;
-					}
+					yellow++;
+					// Log.d("mList2JA2SP", "red = "+red);
+					break;
+				case 2:
+					gray++;
+					// Log.d("mList2JA2SP", "red = "+red);
 					break;
 				default:
 					break;
 				}
-
+				break;
 			}
 			mJA.put(mJO);
 		}
@@ -262,42 +313,77 @@ public class MainActivity extends Activity {
 		redNumber = red;
 		yellowNumber = yellow;
 		grayNumber = gray;
-		Log.d("mList2JA2SP()", projectSP.toString());
+		Log.d("mList2JA2SP",
+				"projectSP保存为 ="
+						+ projectSP.getString("DiaperMonitor", "").toString());
 		Log.d("统计", "red:" + red + ",yellow:" + yellow + ",gray:" + gray);
 	}
 
 	// 从SP拿数据-------------------------------------------------------------
 	// 警报类型,姓名,时间,状态按钮
-	private ArrayList<HashMap<String, Object>> getData() throws JSONException {
+	private ArrayList<HashMap<String, Object>> getData() {
+		// TODO Auto-generated catch block
 		ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
 		HashMap<String, Object> map;
-		projectJA = new JSONArray();
-		// projectJA = new JSONArray(projectSP.getString("DiaperMonitor", ""));
 		if (projectSP.getString("DiaperMonitor", "").equals("")) {
+			Log.d("getData", "projectSP.getString-DiaperMonitor为空");
 			map = new HashMap<String, Object>();
 			JSONObject mJO = new JSONObject();
-			map.put("patientName", mJO.optString("patientName"));
-			map.put("alertType", mJO.optInt("alertType"));
-			map.put("recordTime", mJO.optString("recordTime"));
+			// 应该全部保存成字符串
+			map.put("patientName", "示例");
+			// map.put("alertType", mJO.optString("alertType"));
+			map.put("alertType", 1);
+			sysTime = format.format(System.currentTimeMillis());
+			Log.e("getData", "sysTime=" +sysTime);
+			map.put("recordTime", sysTime);
 			map.put("nursePhone", mJO.optString("nursePhone"));
-			map.put("alertState", mJO.optInt("alertState"));
-			map.put("dataID", mJO.optInt("dataID"));
+			// map.put("alertState", mJO.optString("alertState"));
+			// map.put("dataID", mJO.optString("dataID"));
+			map.put("alertState", 0);
+			map.put("dataID", 0);
+			map.put("nurseName", "");
+			Log.d("getData", "mJO=" + mJO.toString());
 			list.add(map);
 		} else {
+			try {
+				projectJA = new JSONArray(projectSP.getString("DiaperMonitor",
+						""));
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				Log.d("getData", "TRY走空了!!!");
+				e.printStackTrace();
+			}
 			int l = projectJA.length();
+			Log.d("getData", "projectSP.getString-DiaperMonitor不为空,长度为" + l);
+			Log.d("getData", "projectJA =" + projectJA.toString());
 			for (int i = 0; i < l; i++) {
 				map = new HashMap<String, Object>();
-				JSONObject mJO = projectJA.getJSONObject(i);
-				map.put("patientName", mJO.optString("patientName"));
-				map.put("alertType", mJO.optInt("alertType"));
-				map.put("recordTime", mJO.optString("recordTime"));
-				map.put("nursePhone", mJO.optString("nursePhone"));
-				map.put("alertState", mJO.optInt("alertState"));
-				map.put("dataID", mJO.optInt("dataID"));
+				JSONObject mJO;
+				try {
+					mJO = projectJA.getJSONObject(i);
+
+					map.put("patientName", mJO.optString("patientName"));
+					// map.put("alertType", mJO.optString("alertType"));
+					map.put("alertType", mJO.optInt("alertType"));
+					map.put("recordTime", mJO.optString("recordTime"));
+					map.put("nursePhone", mJO.optString("nursePhone"));
+					// map.put("alertState", mJO.optString("alertState"));
+					// map.put("dataID", mJO.optString("dataID"));
+					map.put("alertState", mJO.optInt("alertState"));
+					map.put("dataID", mJO.optInt("dataID"));
+					map.put("nurseName", mJO.optString("nurseName"));
+					Log.d("getData", "mJO =" + mJO.toString());
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				Log.d("getData", "list.add(map) will" );
 				list.add(map);
+				Log.d("getData", "list.add(map) over" );
 			}
 
 		}
+		Log.d("getData", "list.toString()=" +list.toString());
 		return list;
 	}
 
@@ -316,7 +402,7 @@ public class MainActivity extends Activity {
 		public void onReceive(Context context, Intent intent) {
 			if (MESSAGE_RECEIVED_ACTION.equals(intent.getAction())) {
 				try {
-					setView();
+					setMainView();
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -326,10 +412,10 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	private void setView() throws JSONException {
+	private void setMainView() throws JSONException {
 		// TODO Auto-generated method stub
-		// mData = getData();
-		adapter = new MyAdapter(this, getData());
+		mList = getData();
+		adapter = new MyAdapter(this, mList);
 		mListviewCareds.setAdapter(adapter);
 	}
 
@@ -382,29 +468,51 @@ public class MainActivity extends Activity {
 	protected void onStart() {
 		// TODO Auto-generated method stub
 		super.onStart();
+		Log.d("onstart", "onstart");
+
 		infoScrollView = (ScrollView) findViewById(R.id.my_scrollview);
 		infoScrollView.smoothScrollTo(0, 0);
 		numRed.setText("" + redNumber);
 		numYellow.setText("" + yellowNumber);
 		numGray.setText("" + grayNumber);
+		// try {
+		// mList = getData();
+		// Log.d("nameDialog","list对应sp内容:"+projectSP.getString("DiaperMonitor",
+		// ""));
+		// } catch (JSONException e1) {
+		// // TODO Auto-generated catch block
+		// e1.printStackTrace();
+		// }
+//		Log.d("onstart", "onstart已记录" + nameSP.getString("nurseName", ""));
+//
+//		if (nameSP.getString("nurseName", "").equals("")) {
+//			nameDialog();
+//		}
+//		Log.d("onstart", "onstart name:" + name);
 		try {
-			mList = getData();
-		} catch (JSONException e1) {
+			Log.d("onstart", "执行setMainView() ready");
+			setMainView();
+			Log.d("onstart", "执行setMainView() over");
+		} catch (JSONException e) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		Log.d("nameDialog","已记录"+nameSP.getString("nurseName", ""));
-		if (name.equals("")) {
-			nameDialog();
+			Log.d("onstart", "执行setMainView() 出错!!");
+			e.printStackTrace();
 		}
 		Log.d("onstart", "执行了onstart");
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		Log.d("onResume", "onResume");
 	}
 
 	@Override
 	public void onStop() {
 		super.onStop();
 		Log.d("onstop", "执行了onstop");
-		mList2JA2SP();
+		mList2JA2SP(mList);
+		Log.d("onstop", "执行mList2JA2SP");
 
 	}
 

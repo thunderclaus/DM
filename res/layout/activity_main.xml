@@ -49,14 +49,27 @@
                     android:layout_weight="1"
                     android:gravity="center|bottom"
                     android:text="看护列表" />
-
-                <TextView
-                    style="?android:attr/textAppearanceMedium"
-                    android:layout_width="match_parent"
+<LinearLayout
+                android:id="@+id/mainactivy_LinearLayout_01_01_01v"
+                 android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:gravity="center|top"
+                android:orientation="horizontal" >
+                <TextView
+                    style="?android:attr/textAppearanceMedium"
+                    android:layout_height="match_parent"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:gravity="right|top"
+                    android:text="负责人:" />
+                <TextView
+                    style="?android:attr/textAppearanceMedium"
+                    android:layout_height="match_parent"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:gravity="left|top"
                     android:text="护工姓名" />
+                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 

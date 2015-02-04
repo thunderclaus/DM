@@ -18,6 +18,7 @@ public class InitJpush extends Application {
          super.onCreate();
          JPushInterface.setDebugMode(true);
          JPushInterface.init(this);
+         Log.e(TAG, "onCreate finished");
     }
 
 }
