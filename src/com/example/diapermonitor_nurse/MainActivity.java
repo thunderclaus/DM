@@ -25,6 +25,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
@@ -43,6 +45,7 @@ public class MainActivity extends Activity {
 	private TextView numRed;
 	private TextView numYellow;
 	private TextView numGray;
+	private TextView mName;
 	private SimpleDateFormat format;
 	private static SharedPreferences projectSP;
 	private static int redNumber = 0;
@@ -75,6 +78,7 @@ public class MainActivity extends Activity {
 		numRed = (TextView) findViewById(R.id.number_Red);
 		numYellow = (TextView) findViewById(R.id.number_Yellow);
 		numGray = (TextView) findViewById(R.id.number_Gray);
+		mName = (TextView) findViewById(R.id.changeName);
 		format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 		// //SP->JA+JO;JA->SP->LV
@@ -84,7 +88,7 @@ public class MainActivity extends Activity {
 				+ "//ForInit");
 		nameSP = getSharedPreferences("name", Activity.MODE_PRIVATE);
 		name = nameSP.getString("nurseName", "");
-		
+		mName.setText(name);
 		// 判断name是否为空,为空则弹出窗口,请求填写护工编号
 		// 添加修改护工编号的响应
 		Log.d("onCreate", "清空前" + nameSP.getString("nurseName", "") + "end");
@@ -156,6 +160,7 @@ public class MainActivity extends Activity {
 						switch (i) {
 						case 0:
 							// 0->1
+							//红色
 							// 刷新响应状态和响应时间,添加护工信息
 							item.remove("alertState");
 							item.put("alertState", 1);
@@ -172,22 +177,24 @@ public class MainActivity extends Activity {
 							send(item);
 
 							Toast.makeText(getApplicationContext(),
-									"感谢您响应了护理请求", Toast.LENGTH_SHORT).show();
+									"感谢您响应护理请求 !", Toast.LENGTH_SHORT).show();
 							adapter.notifyDataSetChanged();
 
 							break;
 						case 1:
-							// 自己:1->2,刷新,同时记录SP
-							//没有必要	
+							// 1->2,刷新,同时记录SP
+							//黄色,和灰色	
 							name = nameSP.getString("nurseName", "");
 							Log.d("setOnItemClickListener", name);
-							if (item.get("nurseName").equals(name)) {
+							
+								//如果是自己抢到的
 								item.remove("alertState");
-								item.put("alertState", 3);
+								item.put("alertState", 2);
 								sysTime = format.format(System
 										.currentTimeMillis());
 								item.remove("recordTime");
 								item.put("recordTime", sysTime);
+								item.put("nurseName",name);//添加自己的姓名
 								Log.d("点击", "响应:状态为从1变3");
 								// 记录SP?????????????????那一步应该放在前面
 								// 遍历mList,将其以JSONArray形式保存
@@ -196,21 +203,22 @@ public class MainActivity extends Activity {
 								send(item);
 
 								Toast.makeText(getApplicationContext(),
-										"感谢您完成了护理", Toast.LENGTH_SHORT).show();
+										"感谢您为用户进行了护理 ! : )", Toast.LENGTH_SHORT).show();
 								adapter.notifyDataSetChanged();
-							} else {
-								// 别人:无动作
-								Log.d("点击", "1不是自己的响应,无动作");
-							}
+							
 							break;
-//						case 2:
-//							// 无动作
-//							Log.d("点击", "2不是自己的响应,无动作");
-//							break;
-//						case 3:
-//							// 无动作
-//							Log.d("点击", "2不是自己的响应,无动作");
-//							break;
+						case 2:
+							// 无动作,蓝色
+							
+							Toast.makeText(getApplicationContext(), "该用户的护理工作已完成~",
+									Toast.LENGTH_SHORT).show();
+							break;
+						case 3:
+							// 无动作,灰色
+							Toast.makeText(getApplicationContext(), "已有护工进行响应~",
+									Toast.LENGTH_SHORT).show();
+							Log.d("点击", "2不是自己的响应,无动作");
+							break;
 						default:
 							Log.e("点击", "2不是自己的响应,无动作");
 							break;
@@ -223,6 +231,96 @@ public class MainActivity extends Activity {
 		});
 
 	}
+	
+	@Override
+	protected void onStart() {
+		// TODO Auto-generated method stub
+		super.onStart();
+		Log.d("onstart", "onstart");
+
+		infoScrollView = (ScrollView) findViewById(R.id.my_scrollview);
+		infoScrollView.smoothScrollTo(0, 0);
+		numRed.setText("" + redNumber);
+		numYellow.setText("" + yellowNumber);
+		numGray.setText("" + grayNumber);
+		// try {
+		// mList = getData();
+		// Log.d("nameDialog","list对应sp内容:"+projectSP.getString("DiaperMonitor",
+		// ""));
+		// } catch (JSONException e1) {
+		// // TODO Auto-generated catch block
+		// e1.printStackTrace();
+		// }
+//		Log.d("onstart", "onstart已记录" + nameSP.getString("nurseName", ""));
+//
+//		if (nameSP.getString("nurseName", "").equals("")) {
+//			nameDialog();
+//		}
+//		Log.d("onstart", "onstart name:" + name);
+		try {
+			Log.d("onstart", "执行setMainView() ready");
+			setMainView();
+			Log.d("onstart", "执行setMainView() over");
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			Log.d("onstart", "执行setMainView() 出错!!");
+			e.printStackTrace();
+		}
+		Log.d("onstart", "执行了onstart");
+	}
+
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		Log.d("onResume", "onResume");
+	}
+
+	@Override
+	public void onStop() {
+		// TODO Auto-generated method stub
+		super.onStop();
+		Log.d("onstop", "执行了onstop");
+		mList2JA2SP(mList);
+		Log.d("onstop", "执行mList2JA2SP");
+
+	}
+
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		unregisterReceiver(mMessageReceiver);
+		super.onDestroy();
+	}
+
+	// @Override
+	// public boolean onCreateOptionsMenu(Menu menu) {
+	// // Inflate the menu; this adds items to the action bar if it is present.
+	// getMenuInflater().inflate(R.menu.main, menu);
+	// return true;
+	// }
+	 @Override
+	    public boolean onCreateOptionsMenu(Menu menu)
+	    {
+	        MenuInflater inflater = getMenuInflater();
+	       inflater.inflate(R.menu.main, menu);
+	        return true;
+	    }
+	 
+	 public boolean onOptionsItemSelected(MenuItem item) {
+	        // TODO Auto-generated method stub
+	        switch (item.getItemId()) {
+	        case R.id.cleanBlue:
+	            clearDialog();	        	        	
+	            break;
+	        case R.id.changeName:
+	        	nameDialog();	        	
+	            break;
+	        default:
+	            break;
+	        }
+	        return super.onOptionsItemSelected(item);
+	    }
 
 	private void nameDialog() {
 		// TODO Auto-generated method stub
@@ -230,7 +328,7 @@ public class MainActivity extends Activity {
 		Log.d("nameDialog", "被调用了");
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("您好,请输入您的姓名或工作号").setView(editName)
-				.setCancelable(false)
+				.setCancelable(true)
 				.setPositiveButton("确定", new DialogInterface.OnClickListener() {
 
 					@Override
@@ -239,12 +337,20 @@ public class MainActivity extends Activity {
 						SharedPreferences.Editor editor = nameSP.edit();
 						editor.putString("nurseName", editName.getText()
 								.toString());
-						editor.commit();
+						editor.commit();	
+						mName.setText(nameSP.getString("nurseName", ""));
 						Log.d("nameDialog",
 								"已记录nameSP.getString="
 										+ nameSP.getString("nurseName", ""));
 					}
-				}).show();
+				})
+				.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.cancel(); 
+					}
+					})
+				.show();
 	}
 
 	private void send(HashMap<String, Object> mItem) {
@@ -252,7 +358,7 @@ public class MainActivity extends Activity {
 		JSONObject newJpushJson = new JSONObject(mItem);
 		String jpushStr = newJpushJson.toString();
 		JpushUpload uploadJpush = new JpushUpload(jpushStr);
-		uploadJpush.upload();
+		uploadJpush.start();
 	}
 
 	// 将mList保存为SP
@@ -268,7 +374,15 @@ public class MainActivity extends Activity {
 		name = nameSP.getString("nurseName", "");
 		Log.d("mList2JA2SP", name);
 		ArrayList<HashMap<String, Object>> list = mlist;
-
+		if(list==null) {
+			redNumber = 0;
+			yellowNumber = 0;
+			grayNumber = 0;
+			SharedPreferences.Editor editor = projectSP.edit();
+			editor.putString("DiaperMonitor", "");
+			editor.commit();
+		}
+		else {
 		int l = list.size();
 		Log.d("mList2JA2SP", "list.size() = " + l);
 		Log.d("mList2JA2SP", "list内容 = " + list.toString());
@@ -310,6 +424,7 @@ public class MainActivity extends Activity {
 		SharedPreferences.Editor editor = projectSP.edit();
 		editor.putString("DiaperMonitor", mJA.toString());
 		editor.commit();
+		}
 		redNumber = red;
 		yellowNumber = yellow;
 		grayNumber = gray;
@@ -330,7 +445,7 @@ public class MainActivity extends Activity {
 			map = new HashMap<String, Object>();
 			JSONObject mJO = new JSONObject();
 			// 应该全部保存成字符串
-			map.put("patientName", "示例");
+			map.put("patientName", "用户示例");
 			// map.put("alertType", mJO.optString("alertType"));
 			map.put("alertType", 1);
 			sysTime = format.format(System.currentTimeMillis());
@@ -339,7 +454,7 @@ public class MainActivity extends Activity {
 			map.put("nursePhone", mJO.optString("nursePhone"));
 			// map.put("alertState", mJO.optString("alertState"));
 			// map.put("dataID", mJO.optString("dataID"));
-			map.put("alertState", 0);
+			map.put("alertState", 2);
 			map.put("dataID", 0);
 			map.put("nurseName", "");
 			Log.d("getData", "mJO=" + mJO.toString());
@@ -349,7 +464,6 @@ public class MainActivity extends Activity {
 				projectJA = new JSONArray(projectSP.getString("DiaperMonitor",
 						""));
 			} catch (JSONException e) {
-				// TODO Auto-generated catch block
 				Log.d("getData", "TRY走空了!!!");
 				e.printStackTrace();
 			}
@@ -361,14 +475,10 @@ public class MainActivity extends Activity {
 				JSONObject mJO;
 				try {
 					mJO = projectJA.getJSONObject(i);
-
 					map.put("patientName", mJO.optString("patientName"));
-					// map.put("alertType", mJO.optString("alertType"));
 					map.put("alertType", mJO.optInt("alertType"));
 					map.put("recordTime", mJO.optString("recordTime"));
-					map.put("nursePhone", mJO.optString("nursePhone"));
-					// map.put("alertState", mJO.optString("alertState"));
-					// map.put("dataID", mJO.optString("dataID"));
+					map.put("nursePhone", mJO.optString("nursePhone"));					
 					map.put("alertState", mJO.optInt("alertState"));
 					map.put("dataID", mJO.optInt("dataID"));
 					map.put("nurseName", mJO.optString("nurseName"));
@@ -464,69 +574,66 @@ public class MainActivity extends Activity {
 		}
 	};
 
-	@Override
-	protected void onStart() {
+
+
+	private void clearDialog() {
 		// TODO Auto-generated method stub
-		super.onStart();
-		Log.d("onstart", "onstart");
 
-		infoScrollView = (ScrollView) findViewById(R.id.my_scrollview);
-		infoScrollView.smoothScrollTo(0, 0);
-		numRed.setText("" + redNumber);
-		numYellow.setText("" + yellowNumber);
-		numGray.setText("" + grayNumber);
-		// try {
-		// mList = getData();
-		// Log.d("nameDialog","list对应sp内容:"+projectSP.getString("DiaperMonitor",
-		// ""));
-		// } catch (JSONException e1) {
-		// // TODO Auto-generated catch block
-		// e1.printStackTrace();
-		// }
-//		Log.d("onstart", "onstart已记录" + nameSP.getString("nurseName", ""));
-//
-//		if (nameSP.getString("nurseName", "").equals("")) {
-//			nameDialog();
-//		}
-//		Log.d("onstart", "onstart name:" + name);
-		try {
-			Log.d("onstart", "执行setMainView() ready");
-			setMainView();
-			Log.d("onstart", "执行setMainView() over");
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			Log.d("onstart", "执行setMainView() 出错!!");
-			e.printStackTrace();
-		}
-		Log.d("onstart", "执行了onstart");
+		Log.e(" clearDialog", "被调用了");
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("清屏")
+				.setMessage("清除已经完成的护理通知")
+				.setCancelable(true)
+				.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+
+						ArrayList<HashMap<String, Object>> tempList = new ArrayList<HashMap<String,Object>>();
+						if (mList == null) {
+							//无动作
+						} else {
+							int l = mList.size();
+							for (int i = 0; i < l; i++) {
+								if (mList.get(i).get("alertState").equals(2)) {
+									// 无操作,不添加map数据
+									Log.e("clearDialog", "alertState="
+											+ mList.get(i).get("alertState")
+													.toString() + ",无动作 ");
+								} else {
+									Log.e("clearDialog", "alertState="
+											+ mList.get(i).get("alertState")
+													.toString() + ",添加map ");
+									HashMap<String, Object> tempMap = new HashMap<String, Object>(
+											mList.get(i));
+									tempList.add(tempMap);
+								}
+							}
+							mList = tempList;
+							// Log.e("clearDialog",
+							// "tempList = "+tempList.toString());
+							mList2JA2SP(mList);
+							Log.e("clearDialog", "projectSP = "
+									+ projectSP.getString("DiaperMonitor", "")
+											.toString());
+							//adapter.notifyDataSetChanged();
+							try {
+								setMainView();
+								Log.e("clearDialog", "setMainView() ");
+							} catch (JSONException e) {
+								// TODO Auto-generated catch block
+								Log.e("clearDialog", "setMainView()出现异常 ");
+								e.printStackTrace();
+							}
+						}
+					}
+				})
+				.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.cancel();
+					}
+				}).show();
 	}
-
-	@Override
-	protected void onResume() {
-		super.onResume();
-		Log.d("onResume", "onResume");
-	}
-
-	@Override
-	public void onStop() {
-		super.onStop();
-		Log.d("onstop", "执行了onstop");
-		mList2JA2SP(mList);
-		Log.d("onstop", "执行mList2JA2SP");
-
-	}
-
-	@Override
-	protected void onDestroy() {
-		unregisterReceiver(mMessageReceiver);
-		super.onDestroy();
-	}
-
-	// @Override
-	// public boolean onCreateOptionsMenu(Menu menu) {
-	// // Inflate the menu; this adds items to the action bar if it is present.
-	// getMenuInflater().inflate(R.menu.main, menu);
-	// return true;
-	// }
 
 }

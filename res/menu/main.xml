@@ -1,9 +1,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:showAsAction="never"
-        android:title="@string/action_settings"/>
-
+        android:id="@+id/changeName"
+        android:orderInCategory="1"
+        android:icon="@drawable/arrow"
+        android:showAsAction="ifRoom|withText"
+        android:title="我的ID"
+        />
+ 
+    <item
+        android:id="@+id/cleanBlue"
+        android:orderInCategory="2"
+        android:showAsAction="ifRoom|withText"
+        android:icon="@drawable/arrow"
+        android:title="清屏"
+        />
 </menu>

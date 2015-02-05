@@ -68,18 +68,16 @@ public class JpushReceiver extends BroadcastReceiver{
 					case 1:
 						//处理中,刷新,判断是否是自己发出的警报,如果是,[按键无反应]
 						//刷新三项
-						tempJO.put("alertState",1);
-						tempJO.put("recordTime", newJO.optString("recordTime"));
-						tempJO.put("nurseName",newJO.optString("nurseName"));
-						
-						//以下7行是不考虑服务器的代码,因此屏蔽
-//						if(tempJO.optString("nurse")!=null){
-//							//说明自己抢过单
-//						}else {
-//							//别人抢单成功,自己条目将不可点击
-//							tempJO.put("alertState",3);
-//							tempJO.put("recordTime", newJO.optString("recordTime"));
-//						}
+						if(tempJO.optString("nurseName").equals(MainActivity.name)){
+							//说明自己抢过单
+							tempJO.put("alertState",1);
+							tempJO.put("recordTime", newJO.optString("recordTime"));
+							tempJO.put("nurseName",newJO.optString("nurseName"));
+						}else {
+							//别人抢单成功,自己条目将不可点击
+							tempJO.put("alertState",3);
+							tempJO.put("recordTime", newJO.optString("recordTime"));
+						}
 		
 						break;
 

@@ -8,12 +8,19 @@ import java.net.UnknownHostException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class JpushUpload {
+public class JpushUpload extends Thread{
 private String jpushStr;
 	
 	public  JpushUpload(String jpushStr) {
 		this.jpushStr = jpushStr;
 		
+	}
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		super.run();
+		upload() ;
 	}
 
 	public void upload() {

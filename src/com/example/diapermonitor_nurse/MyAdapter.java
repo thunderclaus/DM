@@ -127,9 +127,9 @@ public class MyAdapter extends BaseAdapter{
 		case 1:
 			return stateYellow;
 		case 2:
-			return stateGray;
-		case 3:
 			return stateBlue;
+		case 3:
+			return stateGray;
 		default:
 			break;
 		}// TODO Auto-generated method stub
