@@ -36,8 +36,8 @@ public class MyAdapter extends BaseAdapter{
         mData = list;
         inflater = LayoutInflater.from(context);
 
-        alertWet = BitmapFactory.decodeResource(context.getResources(), R.drawable.arrow);
-        alertKey = BitmapFactory.decodeResource(context.getResources(), R.drawable.arrow);
+        alertWet = BitmapFactory.decodeResource(context.getResources(), R.drawable.matong01);
+        alertKey = BitmapFactory.decodeResource(context.getResources(), R.drawable.bell01);
 //        alertDrop= BitmapFactory.decodeResource(context.getResources(), R.drawable.arrow);
 //        alertLowPow =  BitmapFactory.decodeResource(context.getResources(), R.drawable.arrow);
 

@@ -1,8 +1,10 @@
 //护工端
 package com.example.diapermonitor_nurse;
 
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Set;
 
 import java.util.HashMap;
 
@@ -10,7 +12,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import cn.jpush.android.api.JPushInterface;
+import cn.jpush.android.api.TagAliasCallback;
+
 import com.example.diapermonitor_nurse.MyAdapter;
+
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -28,6 +35,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -47,7 +55,7 @@ public class MainActivity extends Activity {
 	private TextView numGray;
 	private TextView mName;
 	private SimpleDateFormat format;
-	private static SharedPreferences projectSP;
+	static SharedPreferences projectSP;
 	private static int redNumber = 0;
 	private static int yellowNumber = 0;
 	private static int grayNumber = 0;
@@ -62,6 +70,8 @@ public class MainActivity extends Activity {
 	private static SharedPreferences nameSP;
 	protected static String name;
 	private EditText editName;
+	static boolean tagFlag;
+	private static String mMobile ;
 	static ArrayList<HashMap<String, Object>> mList;
 
 	static ArrayList<HashMap<String, Object>> mListItemCareds;
@@ -72,6 +82,11 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		context = this;
+		
+//		mMobile ="18515976971";//hongminote Bb
+//		mMobile ="13261785958";//Mega aa
+		
+		
 		imRed = (ImageView) findViewById(R.id.light_Red);
 		imYelow = (ImageView) findViewById(R.id.light_Yellow);
 		imGray = (ImageView) findViewById(R.id.light_Gray);
@@ -88,9 +103,20 @@ public class MainActivity extends Activity {
 				+ "//ForInit");
 		nameSP = getSharedPreferences("name", Activity.MODE_PRIVATE);
 		name = nameSP.getString("nurseName", "");
-		mName.setText(name);
+		mMobile =nameSP.getString("nurseName", "");
+		mName.setText(mMobile);
 		// 判断name是否为空,为空则弹出窗口,请求填写护工编号
 		// 添加修改护工编号的响应
+			
+		if(mMobile.equals("")) {
+			tagFlag = false;
+			nameDialog();
+		}else {
+		//在JPUSH上注册TAG
+		JPushInterface.setAliasAndTags(getApplicationContext(), mMobile , null, mAliasCallback);
+		
+		}
+		
 		Log.d("onCreate", "清空前" + nameSP.getString("nurseName", "") + "end");
 		// 空数据集合测试
 		// SharedPreferences.Editor editor01 = nameSP.edit();
@@ -98,10 +124,7 @@ public class MainActivity extends Activity {
 		// editor01.commit();
 		// Log.d("onCreate","清空后"+nameSP.getString("nurseName", "")+"end");
 		Log.d("onCreate", "判断nameSP为空与否1 内容=" + nameSP.getString("nurseName", ""));
-
-		if (nameSP.getString("nurseName", "").equals("")) {
-			nameDialog();
-		}
+		
 		Log.d("onCreate", "判断nameSP为空与否2 内容=" + nameSP.getString("nurseName", ""));
 		Log.d("onCreate", "判断变量 name=" + name);
 		
@@ -141,12 +164,12 @@ public class MainActivity extends Activity {
 			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
 					long arg3) {
 				// TODO Auto-generated method stub
-				setTitle("你选择了" + arg2 + "进行护理");// 设置标题栏显示点击的行
+				//setTitle("你选择了" + arg2 + "进行护理");// 设置标题栏显示点击的行
 
 				int i = 3;
 				HashMap<String, Object> item;
 				item = mList.get(arg2);
-				
+				Log.d("onItemClick", "点击前 mList.get(arg2)"+item.toString());
 				if (nameSP.getString("nurseName", "").equals("")) {
 					nameDialog();
 					Toast.makeText(getApplicationContext(), "联系患者时,需要填写您的信息",
@@ -168,12 +191,14 @@ public class MainActivity extends Activity {
 							item.remove("recordTime");
 							item.put("recordTime", sysTime);
 							item.put("nurseName", name);
+							item.put("nursePhone", mMobile);
 							Log.d("点击", "响应:状态为从0变1");
 							// 记录SP
 							// 遍历mList,将其以JSONArray形式保存
 							mList2JA2SP(mList);
 
 							// 发送(线程)
+							Log.d("onItemClick", "点击后 mList.get(arg2)"+item.toString());
 							send(item);
 
 							Toast.makeText(getApplicationContext(),
@@ -195,7 +220,7 @@ public class MainActivity extends Activity {
 								item.remove("recordTime");
 								item.put("recordTime", sysTime);
 								item.put("nurseName",name);//添加自己的姓名
-								Log.d("点击", "响应:状态为从1变3");
+								Log.d("点击", "响应:状态为从1变2");
 								// 记录SP?????????????????那一步应该放在前面
 								// 遍历mList,将其以JSONArray形式保存
 								mList2JA2SP(mList);
@@ -217,10 +242,10 @@ public class MainActivity extends Activity {
 							// 无动作,灰色
 							Toast.makeText(getApplicationContext(), "已有护工进行响应~",
 									Toast.LENGTH_SHORT).show();
-							Log.d("点击", "2不是自己的响应,无动作");
+							Log.d("点击", "3不是自己的响应,无动作");
 							break;
 						default:
-							Log.e("点击", "2不是自己的响应,无动作");
+							Log.e("点击", "不是自己的响应,无动作");
 							break;
 						}
 					}
@@ -307,6 +332,23 @@ public class MainActivity extends Activity {
 	        return true;
 	    }
 	 
+	@Override
+	public boolean onMenuOpened(int featureId, Menu menu) {
+		if (featureId == Window.FEATURE_ACTION_BAR && menu != null) {
+			if (menu.getClass().getSimpleName().equals("MenuBuilder")) {
+				try {
+					Method m = menu.getClass().getDeclaredMethod(
+							"setOptionalIconsVisible", Boolean.TYPE);
+					m.setAccessible(true);
+					m.invoke(menu, true);
+				} catch (Exception e) {
+				}
+			}
+		}
+		return super.onMenuOpened(featureId, menu);
+	}
+
+	 @Override
 	 public boolean onOptionsItemSelected(MenuItem item) {
 	        // TODO Auto-generated method stub
 	        switch (item.getItemId()) {
@@ -327,7 +369,7 @@ public class MainActivity extends Activity {
 		editName = new EditText(this);
 		Log.d("nameDialog", "被调用了");
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("您好,请输入您的姓名或工作号").setView(editName)
+		builder.setTitle("您好,请输入本手机的号码").setView(editName)
 				.setCancelable(true)
 				.setPositiveButton("确定", new DialogInterface.OnClickListener() {
 
@@ -339,6 +381,9 @@ public class MainActivity extends Activity {
 								.toString());
 						editor.commit();	
 						mName.setText(nameSP.getString("nurseName", ""));
+						mMobile =nameSP.getString("nurseName", "");
+						JPushInterface.setAliasAndTags(getApplicationContext(), mMobile , null, mAliasCallback);
+							
 						Log.d("nameDialog",
 								"已记录nameSP.getString="
 										+ nameSP.getString("nurseName", ""));
@@ -398,19 +443,11 @@ public class MainActivity extends Activity {
 					red++;
 					// Log.d("mList2JA2SP", "red = "+red);
 					break;
-//				case 1:
-//					if (list.get(a).get("nurseName").equals(name)) {
-//						yellow++;
-//						Log.d("mList2JA2SP", "yellow = " + yellow);
-//					} else {
-//						gray++;
-//					}
-//					break;
 				case 1:
 					yellow++;
 					// Log.d("mList2JA2SP", "red = "+red);
 					break;
-				case 2:
+				case 3:
 					gray++;
 					// Log.d("mList2JA2SP", "red = "+red);
 					break;
@@ -432,6 +469,7 @@ public class MainActivity extends Activity {
 				"projectSP保存为 ="
 						+ projectSP.getString("DiaperMonitor", "").toString());
 		Log.d("统计", "red:" + red + ",yellow:" + yellow + ",gray:" + gray);
+		
 	}
 
 	// 从SP拿数据-------------------------------------------------------------
@@ -446,6 +484,7 @@ public class MainActivity extends Activity {
 			JSONObject mJO = new JSONObject();
 			// 应该全部保存成字符串
 			map.put("patientName", "用户示例");
+			map.put("patientPhone", "");
 			// map.put("alertType", mJO.optString("alertType"));
 			map.put("alertType", 1);
 			sysTime = format.format(System.currentTimeMillis());
@@ -476,6 +515,7 @@ public class MainActivity extends Activity {
 				try {
 					mJO = projectJA.getJSONObject(i);
 					map.put("patientName", mJO.optString("patientName"));
+					map.put("patientPhone", mJO.optString("patientPhone"));
 					map.put("alertType", mJO.optInt("alertType"));
 					map.put("recordTime", mJO.optString("recordTime"));
 					map.put("nursePhone", mJO.optString("nursePhone"));					
@@ -527,7 +567,7 @@ public class MainActivity extends Activity {
 		mList = getData();
 		adapter = new MyAdapter(this, mList);
 		mListviewCareds.setAdapter(adapter);
-	}
+		}
 
 	// 测试用本地生成数据
 	// private static JSONObject testJSONObject(int num) {
@@ -635,5 +675,45 @@ public class MainActivity extends Activity {
 					}
 				}).show();
 	}
+	
+	private final TagAliasCallback mAliasCallback = new TagAliasCallback() {
+	    public void gotResult(int code, String alias, Set<String> tags) {
+	        String logs ;
+	        String TAG = "mAliasCallback";
+	        switch (code) {
+	        case 0:
+	            logs = "Set tag and alias success";
+	            Log.e(TAG, logs);
+	            Toast.makeText(getApplicationContext(), "欢迎使用,您辛苦了~", Toast.LENGTH_SHORT);
+	            tagFlag = true;
+//	            SharedPreferences sp = context.getSharedPreferences("alarmclient", MODE_PRIVATE);
+//	            SharedPreferences.Editor editor = sp.edit();
+//	            editor.putBoolean("firststart", false);
+//	            editor.putString("alias", alias);
+//	            editor.commit();
+//	            Intent intent = new Intent(context, MainAlarm.class);
+//	            startActivity(intent);
+//	            Login.this.finish();
+	            break;
+	        case 6002:
+	            logs = "Failed to set alias and tags due to timeout";
+	            Log.e(TAG, logs);
+	            Toast.makeText(getApplicationContext(), "请确认此手机的号码是否填写正确", Toast.LENGTH_LONG);
+//	            Intent intent1 = new Intent(Login.this, LoginError.class);
+//	    		String login_error = "请检查手机网络是否正常";
+//	    		intent1.putExtra("login_error", login_error);
+//	    		startActivity(intent1);
+	            break;
+	        default:
+	            logs = "Failed with errorCode = " + code;
+	            Log.e(TAG, logs);
+//	            Intent intent2 = new Intent(Login.this, LoginError.class);
+//	    		String login_error2 = "请检查手机网络是否正常";
+//	    		intent2.putExtra("login_error", login_error2);
+//	    		startActivity(intent2);
+	            break;
+	        }
+	    }
+	};  
 
 }

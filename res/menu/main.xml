@@ -3,16 +3,16 @@
     <item
         android:id="@+id/changeName"
         android:orderInCategory="1"
-        android:icon="@drawable/arrow"
-        android:showAsAction="ifRoom|withText"
+        android:icon="@drawable/name"
+        android:showAsAction="always|withText"
         android:title="我的ID"
         />
  
     <item
         android:id="@+id/cleanBlue"
         android:orderInCategory="2"
-        android:showAsAction="ifRoom|withText"
-        android:icon="@drawable/arrow"
+        android:showAsAction="always|withText"
+        android:icon="@drawable/brush"
         android:title="清屏"
         />
 </menu>
