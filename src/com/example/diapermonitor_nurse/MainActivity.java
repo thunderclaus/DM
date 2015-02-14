@@ -147,6 +147,7 @@ public class MainActivity extends Activity {
 		// // TODO Auto-generated catch block
 		// e.printStackTrace();
 		// }
+		
 		registerMessageReceiver();
 
 		// 病人数据集合-----------------------感觉应该设置成JSONArray
@@ -199,7 +200,7 @@ public class MainActivity extends Activity {
 
 							// 发送(线程)
 							Log.d("onItemClick", "点击后 mList.get(arg2)"+item.toString());
-							send(item);
+							send(item);//====================================================================================
 
 							Toast.makeText(getApplicationContext(),
 									"感谢您响应护理请求 !", Toast.LENGTH_SHORT).show();
@@ -250,7 +251,15 @@ public class MainActivity extends Activity {
 						}
 					}
 				}
-
+				try {
+					Log.d("OnClickItem", "执行setMainView()");
+					setMainView();
+					//Log.d("OnClickItem" ,"执行setMainView() over");
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					Log.d("OnClickItem", "执行setMainView() 出错!!");
+					e.printStackTrace();
+				}
 			}
 
 		});
@@ -265,23 +274,10 @@ public class MainActivity extends Activity {
 
 		infoScrollView = (ScrollView) findViewById(R.id.my_scrollview);
 		infoScrollView.smoothScrollTo(0, 0);
-		numRed.setText("" + redNumber);
-		numYellow.setText("" + yellowNumber);
-		numGray.setText("" + grayNumber);
-		// try {
-		// mList = getData();
-		// Log.d("nameDialog","list对应sp内容:"+projectSP.getString("DiaperMonitor",
-		// ""));
-		// } catch (JSONException e1) {
-		// // TODO Auto-generated catch block
-		// e1.printStackTrace();
-		// }
-//		Log.d("onstart", "onstart已记录" + nameSP.getString("nurseName", ""));
-//
-//		if (nameSP.getString("nurseName", "").equals("")) {
-//			nameDialog();
-//		}
-//		Log.d("onstart", "onstart name:" + name);
+//		numRed.setText("" + redNumber);
+//		numYellow.setText("" + yellowNumber);
+//		numGray.setText("" + grayNumber);
+
 		try {
 			Log.d("onstart", "执行setMainView() ready");
 			setMainView();
@@ -382,6 +378,7 @@ public class MainActivity extends Activity {
 						editor.commit();	
 						mName.setText(nameSP.getString("nurseName", ""));
 						mMobile =nameSP.getString("nurseName", "");
+						Log.e("MainActivity", mMobile);
 						JPushInterface.setAliasAndTags(getApplicationContext(), mMobile , null, mAliasCallback);
 							
 						Log.d("nameDialog",
@@ -411,18 +408,18 @@ public class MainActivity extends Activity {
 		// TODO Auto-generated method stub
 
 		JSONArray mJA = new JSONArray();
-		int count = 0;
-		int red = 0;
-		int yellow = 0;
-		int gray = 0;
+//		int count = 0;
+//		int red = 0;
+//		int yellow = 0;
+//		int gray = 0;
 		//没有必要 
 		name = nameSP.getString("nurseName", "");
 		Log.d("mList2JA2SP", name);
 		ArrayList<HashMap<String, Object>> list = mlist;
 		if(list==null) {
-			redNumber = 0;
-			yellowNumber = 0;
-			grayNumber = 0;
+//			redNumber = 0;
+//			yellowNumber = 0;
+//			grayNumber = 0;
 			SharedPreferences.Editor editor = projectSP.edit();
 			editor.putString("DiaperMonitor", "");
 			editor.commit();
@@ -434,42 +431,42 @@ public class MainActivity extends Activity {
 		for (int a = 0; a < l; a++) {
 			JSONObject mJO = new JSONObject(list.get(a));
 			Log.d("mList2JA2SP", "mJO = " + mJO.toString());
-			while (list.get(a).get("alertState") != null) {
-				count = Integer.parseInt(list.get(a).get("alertState")
-						.toString());
-				Log.d("mList2JA2SP", "count = " + count);
-				switch (count) {
-				case 0:
-					red++;
-					// Log.d("mList2JA2SP", "red = "+red);
-					break;
-				case 1:
-					yellow++;
-					// Log.d("mList2JA2SP", "red = "+red);
-					break;
-				case 3:
-					gray++;
-					// Log.d("mList2JA2SP", "red = "+red);
-					break;
-				default:
-					break;
-				}
-				break;
-			}
+//			while (list.get(a).get("alertState") != null) {
+//				count = Integer.parseInt(list.get(a).get("alertState")
+//						.toString());
+//				Log.d("mList2JA2SP", "count = " + count);
+//				switch (count) {
+//				case 0:
+//					red++;
+//					// Log.d("mList2JA2SP", "red = "+red);
+//					break;
+//				case 1:
+//					yellow++;
+//					// Log.d("mList2JA2SP", "red = "+red);
+//					break;
+//				case 3:
+//					gray++;
+//					// Log.d("mList2JA2SP", "red = "+red);
+//					break;
+//				default:
+//					break;
+//				}
+//				break;
+//			}
 			mJA.put(mJO);
 		}
 		SharedPreferences.Editor editor = projectSP.edit();
 		editor.putString("DiaperMonitor", mJA.toString());
 		editor.commit();
 		}
-		redNumber = red;
-		yellowNumber = yellow;
-		grayNumber = gray;
-		Log.d("mList2JA2SP",
-				"projectSP保存为 ="
-						+ projectSP.getString("DiaperMonitor", "").toString());
-		Log.d("统计", "red:" + red + ",yellow:" + yellow + ",gray:" + gray);
-		
+//		redNumber = red;
+//		yellowNumber = yellow;
+//		grayNumber = gray;
+//		Log.d("mList2JA2SP",
+//				"projectSP保存为 ="
+//						+ projectSP.getString("DiaperMonitor", "").toString());
+//		Log.d("统计", "red:" + red + ",yellow:" + yellow + ",gray:" + gray);
+//		
 	}
 
 	// 从SP拿数据-------------------------------------------------------------
@@ -478,6 +475,9 @@ public class MainActivity extends Activity {
 		// TODO Auto-generated catch block
 		ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
 		HashMap<String, Object> map;
+		int red = 0;
+		int yellow = 0;
+		int gray = 0;
 		if (projectSP.getString("DiaperMonitor", "").equals("")) {
 			Log.d("getData", "projectSP.getString-DiaperMonitor为空");
 			map = new HashMap<String, Object>();
@@ -509,6 +509,8 @@ public class MainActivity extends Activity {
 			int l = projectJA.length();
 			Log.d("getData", "projectSP.getString-DiaperMonitor不为空,长度为" + l);
 			Log.d("getData", "projectJA =" + projectJA.toString());
+			int count = 0;
+			
 			for (int i = 0; i < l; i++) {
 				map = new HashMap<String, Object>();
 				JSONObject mJO;
@@ -523,17 +525,41 @@ public class MainActivity extends Activity {
 					map.put("dataID", mJO.optInt("dataID"));
 					map.put("nurseName", mJO.optString("nurseName"));
 					Log.d("getData", "mJO =" + mJO.toString());
+					
+					count = ( mJO.optInt("alertState"));
+					
+							switch (count) {
+							case 0:
+								red++;
+								// Log.d("mList2JA2SP", "red = "+red);
+								break;
+							case 1:
+								yellow++;
+								// Log.d("mList2JA2SP", "red = "+red);
+								break;
+							case 3:
+								gray++;
+								// Log.d("mList2JA2SP", "red = "+red);
+								break;
+							default:
+								break;
+							}
+							
+							
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				Log.d("getData", "list.add(map) will" );
 				list.add(map);
-				Log.d("getData", "list.add(map) over" );
+				Log.d("getData", "list.add(map) over" );	
 			}
 
 		}
 		Log.d("getData", "list.toString()=" +list.toString());
+		redNumber = red;
+		yellowNumber = yellow;
+		grayNumber = gray;
 		return list;
 	}
 
@@ -567,6 +593,9 @@ public class MainActivity extends Activity {
 		mList = getData();
 		adapter = new MyAdapter(this, mList);
 		mListviewCareds.setAdapter(adapter);
+		numRed.setText("" + redNumber);
+		numYellow.setText("" + yellowNumber);
+		numGray.setText("" + grayNumber);
 		}
 
 	// 测试用本地生成数据
@@ -684,7 +713,7 @@ public class MainActivity extends Activity {
 	        case 0:
 	            logs = "Set tag and alias success";
 	            Log.e(TAG, logs);
-	            Toast.makeText(getApplicationContext(), "欢迎使用,您辛苦了~", Toast.LENGTH_SHORT);
+	            Toast.makeText(getApplicationContext(), "欢迎使用,您辛苦了~", Toast.LENGTH_SHORT).show();
 	            tagFlag = true;
 //	            SharedPreferences sp = context.getSharedPreferences("alarmclient", MODE_PRIVATE);
 //	            SharedPreferences.Editor editor = sp.edit();
@@ -698,7 +727,7 @@ public class MainActivity extends Activity {
 	        case 6002:
 	            logs = "Failed to set alias and tags due to timeout";
 	            Log.e(TAG, logs);
-	            Toast.makeText(getApplicationContext(), "请确认此手机的号码是否填写正确", Toast.LENGTH_LONG);
+	            Toast.makeText(getApplicationContext(), "请确认此手机的号码是否填写正确", Toast.LENGTH_LONG).show();
 //	            Intent intent1 = new Intent(Login.this, LoginError.class);
 //	    		String login_error = "请检查手机网络是否正常";
 //	    		intent1.putExtra("login_error", login_error);

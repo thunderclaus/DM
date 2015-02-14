@@ -37,79 +37,99 @@ public class JpushReceiver extends BroadcastReceiver {
 		// SP->JA+JO;JA->SP->LV
 		// SharedPreferences,JSONArray,JSONObject,ListView
 		JSONArray tempJA;
+		Log.d(TAG,"1:");
 		JSONObject newJO;
-
-		SharedPreferences tempSP = context.getSharedPreferences(
-				"DiaperMonitor", Activity.MODE_PRIVATE);
+		Log.d(TAG,"2:");
+		SharedPreferences tempSP = MainActivity.projectSP;
 		// 上句中应为context还是MainActivity?????????????
-		
-
+		Log.d(TAG,"3:");
+		Log.e(TAG, "进入" );
+//		try {
+//			tempJA = new JSONArray(tempSP.getString("DiaperMonitor", ""));
+//			Log.e(TAG, "DiaperMonitor" + tempSP.getString("DiaperMonitor", ""));
+//		} catch (JSONException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+		Log.e(TAG, "出来" );
+		Log.d(TAG,"4:");
 		try {
 			// JA
 			tempJA = new JSONArray(tempSP.getString("DiaperMonitor", ""));
 			Log.e(TAG, "DiaperMonitor" + tempSP.getString("DiaperMonitor", ""));
 			String jpushData = bundle.getString(JPushInterface.EXTRA_MESSAGE);
-
+			Log.d(TAG,"5:");
 			// JO:获取JPUSH数据
 			newJO = new JSONObject(jpushData);
-			Log.e(TAG, "接收到的数据"+tempJA.toString());
+			
+			Log.e(TAG, "接收到的数据"+newJO.toString());
+			//应当有反馈通信======================================================验证OK
 			int length = tempJA.length();
 			Log.e("tempJA.length()", "" + length);
 			if (length == 0) {
 				tempJA.put(newJO);
 				Log.e(TAG, "SP为0"+tempJA.toString());
 			} else {
+				boolean isExist = false;
 				// 遍历JSONArray
 				for (int i = length - 1; i >= 0; i--) {
 					JSONObject tempJO = tempJA.getJSONObject(i);
-					if (newJO.optInt("dataID") == (tempJO.optInt("dataID"))) {
-						// 如果是已有报警
-
-						// 将JA替换
-						switch (newJO.optInt("alertState")) {
-						case 0:
-							// 新警报,刷新替换[按键+1,添加姓名键值对]
-							
-							tempJO.put("alertState", 0);
-							tempJO.put("recordTime",newJO.optString("recordTime"));
-							tempJO.put("patientPhone", newJO.opt("patientPhone"));
-							tempJO.remove("nurseName");
-							// if(tempJO.optString("nurseName")!=null){tempJO.remove("nurseName");}
-							break;
-						case 1:
-							// 处理中,刷新,判断是否是自己发出的警报,如果是,[按键无反应]
-							// 刷新三项
-							if (tempJO.optString("nurseName").equals(MainActivity.name)) {
-								// 说明自己抢过单
-								tempJO.put("alertState", 1);
-								tempJO.put("patientName", newJO.opt("patientName"));
+					Log.e(TAG, "遍历已有的JSONArray,第"+i+"="+tempJO.toString());
+					if(tempJO.optInt("dataID")!=0) {
+						if (newJO.optInt("dataID") == (tempJO.optInt("dataID"))) {
+							isExist = true;
+							// 如果是已有报警
+							Log.e("JpushReceiver","接收到dataID相同");
+							// 将JA替换
+							switch (newJO.optInt("alertState")) {
+							case 0:
+								// 新警报,刷新替换[按键+1,添加姓名键值对]
+								
+								tempJO.put("alertState", 0);
 								tempJO.put("recordTime",newJO.optString("recordTime"));
-								tempJO.put("nurseName",newJO.optString("nurseName"));
-							} else {
-								// 别人抢单成功,自己条目将不可点击
-								tempJO.put("alertState", 3);
-								tempJO.put("recordTime",
-										newJO.optString("recordTime"));
+								tempJO.put("patientPhone", newJO.opt("patientPhone"));
+								tempJO.remove("nurseName");
+								// if(tempJO.optString("nurseName")!=null){tempJO.remove("nurseName");}
+								break;
+							case 1:
+								// 处理中,刷新,判断是否是自己发出的警报,如果是,[按键无反应]
+								// 刷新三项
+								if (tempJO.optString("nurseName").equals(MainActivity.name)) {
+									Log.e(TAG,"判断是否是自己发出的警报-收到:"+tempJO.optString("nurseName")+",对比我的名字"+MainActivity.name);
+									// 说明自己抢过单
+									tempJO.put("alertState", 1);
+									tempJO.put("patientName", newJO.opt("patientName"));
+									tempJO.put("recordTime",newJO.optString("recordTime"));
+									tempJO.put("nurseName",newJO.optString("nurseName"));
+								} else {
+									// 别人抢单成功,自己条目将不可点击
+									tempJO.put("alertState", 3);
+									tempJO.put("recordTime",
+											newJO.optString("recordTime"));
+								}
+
+								break;
+
+							case 2:
+								// 处理完毕,刷新替换[按键无反应]
+								tempJO.put("alertState", 2);
+								tempJO.put("recordTime",newJO.optString("recordTime"));
+								break;
+
+							default:
+								break;
 							}
-
-							break;
-
-						case 2:
-							// 处理完毕,刷新替换[按键无反应]
-							tempJO.put("alertState", 2);
-							tempJO.put("recordTime",newJO.optString("recordTime"));
-							break;
-
-						default:
-							break;
+						} else {
+							// 将newJO添加到JA之后
+							Log.e("JpushReceiver","接收到dataID不同");
+							Log.e("JpushReceiver","接收到dataID不同"+tempJA.toString());
 						}
-					} else {
-						// 将newJO添加到JA之后
-						tempJA.put(newJO);
 					}
+					
 				}
 				//保存 JA
-
+				if(!isExist)
+					tempJA.put(newJO);
 			}
 			// 将更新数据保存至本地SP"DiaperMonitor"
 			SharedPreferences.Editor editor = tempSP.edit();
@@ -128,6 +148,7 @@ public class JpushReceiver extends BroadcastReceiver {
 			// 主线程通信handler
 			Log.e(TAG, "莫名其妙的出错了");
 			MainActivity.SendMessage(MainActivity.handler, 1);
+			
 			e.printStackTrace();
 		}
 
